@@ -1,18 +1,20 @@
 [project]
 name = "transformer"
-version = "1.0.0"
-description = "Add your description here"
+version = "0.1.0"
+description = "Transformer architecture implementation with TensorFlow based on Coursera NLP course"
 readme = "README.md"
-requires-python = ">=3.7"
-dependencies = [
-    "numpy~=1.19.0",
-    "pytest>=7.4.4",
-    "tensorflow~=2.4.0",
-]
+requires-python = ">=3.13"
+authors = [{ name = "Xiao Li", email = "xiaoli3397@gmail.com" }]
+dependencies = ["numpy>=2.4.6", "tensorflow>=2.21.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=9.1.1"]
+
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
-pythonpath = ["src", "tests"]
+pythonpath = "src"
+
 [tool.black]
 line-length = 120
-target-version = ['py37']
+target-version = ['py313']
 include = '\.py$'

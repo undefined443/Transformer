@@ -1,8 +1,10 @@
 import numpy as np
 import tensorflow as tf
-import utils
-import attention
+
+import decoder
+import encoder
 import transformer
+import utils
 
 
 def test_get_angles():
@@ -22,9 +24,13 @@ def test_get_angles():
     assert np.isclose(np.sum(result[:, 0]), position * (position - 1) / 2)
     even_cols = result[:, 0::2]
     odd_cols = result[:, 1::2]
-    assert np.all(even_cols == odd_cols), "Submatrices of odd and even columns must be equal"
+    assert np.all(even_cols == odd_cols), (
+        "Submatrices of odd and even columns must be equal"
+    )
     limit = (position - 1) / np.power(10000, 14.0 / 16.0)
-    assert np.isclose(result[position - 1, d_model - 1], limit), f"Last value must be {limit}"
+    assert np.isclose(result[position - 1, d_model - 1], limit), (
+        f"Last value must be {limit}"
+    )
 
     print("\033[92mAll tests passed")
 
@@ -45,9 +51,9 @@ def test_positional_encoding():
     ), f"Wrong shape. We expected: (1, {position}, {d_model})"
 
     ones = sin_part**2 + cos_part**2
-    assert np.allclose(
-        ones, np.ones((1, position, d_model // 2))
-    ), "Sum of square pairs must be 1 = sin(a)**2 + cos(a)**2"
+    assert np.allclose(ones, np.ones((1, position, d_model // 2))), (
+        "Sum of square pairs must be 1 = sin(a)**2 + cos(a)**2"
+    )
 
     angs = np.arctan(sin_part / cos_part)
     angs[angs < 0] += np.pi
@@ -59,14 +65,18 @@ def test_positional_encoding():
 
     trueAngs = utils.get_angles(pos_m, dims, d_model)[:, 0::2] % (2 * np.pi)
 
-    assert np.allclose(angs[0], trueAngs), "Did you apply sin and cos to even and odd parts respectively?"
+    assert np.allclose(angs[0], trueAngs), (
+        "Did you apply sin and cos to even and odd parts respectively?"
+    )
 
     print("\033[92mAll tests passed")
 
 
 def test_scaled_dot_product_attention():
     q = np.array([[1, 0, 1, 1], [0, 1, 1, 1], [1, 0, 0, 1]]).astype(np.float32)
-    k = np.array([[1, 1, 0, 1], [1, 0, 1, 1], [0, 1, 1, 0], [0, 0, 0, 1]]).astype(np.float32)
+    k = np.array([[1, 1, 0, 1], [1, 0, 1, 1], [0, 1, 1, 0], [0, 0, 0, 1]]).astype(
+        np.float32
+    )
     v = np.array([[0, 0], [1, 0], [1, 0], [1, 1]]).astype(np.float32)
 
     _attention, _weights = utils.scaled_dot_product_attention(q, k, v, None)
@@ -119,7 +129,7 @@ def test_scaled_dot_product_attention():
 
 def test_EncoderLayer():
     q = np.array([[[1, 0, 1, 1], [0, 1, 1, 1], [1, 0, 0, 1]]]).astype(np.float32)
-    encoder_layer1 = attention.EncoderLayer(4, 2, 8)
+    encoder_layer1 = encoder.EncoderLayer(4, 2, 8)
     tf.random.set_seed(10)
     encoded = encoder_layer1(q, training=True, mask=np.array([[1, 0, 1]]))
 
@@ -156,7 +166,7 @@ def test_Encoder():
 
     embedding_dim = 4
 
-    encoderq = attention.Encoder(
+    encoderq = encoder.Encoder(
         num_layers=2,
         embedding_dim=embedding_dim,
         num_heads=2,
@@ -191,7 +201,9 @@ def test_Encoder():
         ],
     ), "Wrong values case 1"
 
-    encoderq_output = encoderq(x, True, np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]]))
+    encoderq_output = encoderq(
+        x, True, np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]])
+    )
     assert np.allclose(
         encoderq_output.numpy(),
         [
@@ -208,7 +220,9 @@ def test_Encoder():
         ],
     ), "Wrong values case 2"
 
-    encoderq_output = encoderq(x, False, np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]]))
+    encoderq_output = encoderq(
+        x, False, np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]])
+    )
     assert np.allclose(
         encoderq_output.numpy(),
         [
@@ -229,11 +243,10 @@ def test_Encoder():
 
 
 def test_DecoderLayer():
-
     num_heads = 8
     tf.random.set_seed(10)
 
-    decoderLayerq = attention.DecoderLayer(
+    decoderLayerq = decoder.DecoderLayer(
         embedding_dim=4,
         num_heads=num_heads,
         fully_connected_dim=32,
@@ -269,24 +282,34 @@ def test_DecoderLayer():
     assert tf.is_tensor(out), "Wrong type for out. Output must be a tensor"
 
     shape1 = (q.shape[0], num_heads, q.shape[1], q.shape[1])
-    assert tuple(tf.shape(attn_w_b1).numpy()) == shape1, f"Wrong shape. We expected {shape1}"
-    assert tuple(tf.shape(attn_w_b2).numpy()) == shape1, f"Wrong shape. We expected {shape1}"
-    assert tuple(tf.shape(out).numpy()) == q.shape, f"Wrong shape. We expected {q.shape}"
+    assert tuple(tf.shape(attn_w_b1).numpy()) == shape1, (
+        f"Wrong shape. We expected {shape1}"
+    )
+    assert tuple(tf.shape(attn_w_b2).numpy()) == shape1, (
+        f"Wrong shape. We expected {shape1}"
+    )
+    assert tuple(tf.shape(out).numpy()) == q.shape, (
+        f"Wrong shape. We expected {q.shape}"
+    )
 
-    assert np.allclose(
-        attn_w_b1[0, 0, 1], [0.5271505, 0.47284946, 0.0], atol=1e-2
-    ), "Wrong values in attn_w_b1. Check the call to self.mha1"
-    assert np.allclose(
-        attn_w_b2[0, 0, 1], [0.32048798, 0.390301, 0.28921106]
-    ), "Wrong values in attn_w_b2. Check the call to self.mha2"
-    assert np.allclose(out[0, 0], [-0.22109576, -1.5455486, 0.852692, 0.9139523]), "Wrong values in out"
+    assert np.allclose(attn_w_b1[0, 0, 1], [0.5271505, 0.47284946, 0.0], atol=1e-2), (
+        "Wrong values in attn_w_b1. Check the call to self.mha1"
+    )
+    assert np.allclose(attn_w_b2[0, 0, 1], [0.32048798, 0.390301, 0.28921106]), (
+        "Wrong values in attn_w_b2. Check the call to self.mha2"
+    )
+    assert np.allclose(out[0, 0], [-0.22109576, -1.5455486, 0.852692, 0.9139523]), (
+        "Wrong values in out"
+    )
 
     # Now let's try a example with padding mask
     padding_mask = np.array([[[1, 1, 0]]])
-    out, attn_w_b1, attn_w_b2 = decoderLayerq(q, encoderq_output, True, look_ahead_mask, padding_mask)
-    assert np.allclose(
-        out[0, 0], [0.14950314, -1.6444231, 1.0268553, 0.4680646]
-    ), "Wrong values in out when we mask the last word. Are you passing the padding_mask to the inner functions?"
+    out, attn_w_b1, attn_w_b2 = decoderLayerq(
+        q, encoderq_output, True, look_ahead_mask, padding_mask
+    )
+    assert np.allclose(out[0, 0], [0.14950314, -1.6444231, 1.0268553, 0.4680646]), (
+        "Wrong values in out when we mask the last word. Are you passing the padding_mask to the inner functions?"
+    )
 
     print("\033[92mAll tests passed")
 
@@ -320,7 +343,7 @@ def test_Decoder():
 
     look_ahead_mask = utils.create_look_ahead_mask(x_array.shape[1])
 
-    decoderk = attention.Decoder(
+    decoderk = decoder.Decoder(
         num_layers,
         embedding_dim,
         num_heads,
@@ -336,27 +359,37 @@ def test_Decoder():
         padding_mask=None,
     )
     assert tf.is_tensor(x), "Wrong type for x. It must be a dict"
-    assert np.allclose(tf.shape(x), tf.shape(encoderq_output)), f"Wrong shape. We expected {tf.shape(encoderq_output)}"
-    assert np.allclose(x[1, 1], [-0.2715261, -0.5606001, -0.861783, 1.69390933]), "Wrong values in x"
+    assert np.allclose(tf.shape(x), tf.shape(encoderq_output)), (
+        f"Wrong shape. We expected {tf.shape(encoderq_output)}"
+    )
+    assert np.allclose(x[1, 1], [-0.2715261, -0.5606001, -0.861783, 1.69390933]), (
+        "Wrong values in x"
+    )
 
     keys = list(attention_weights.keys())
-    assert isinstance(attention_weights, dict), "Wrong type for attention_weights[0]. Output must be a tensor"
-    assert (
-        len(keys) == 2 * num_layers
-    ), f"Wrong length for attention weights. It must be 2 x num_layers = {2*num_layers}"
-    assert tf.is_tensor(
-        attention_weights[keys[0]]
-    ), f"Wrong type for attention_weights[{keys[0]}]. Output must be a tensor"
+    assert isinstance(attention_weights, dict), (
+        "Wrong type for attention_weights[0]. Output must be a tensor"
+    )
+    assert len(keys) == 2 * num_layers, (
+        f"Wrong length for attention weights. It must be 2 x num_layers = {2 * num_layers}"
+    )
+    assert tf.is_tensor(attention_weights[keys[0]]), (
+        f"Wrong type for attention_weights[{keys[0]}]. Output must be a tensor"
+    )
     shape1 = (x_array.shape[0], num_heads, x_array.shape[1], x_array.shape[1])
-    assert tuple(tf.shape(attention_weights[keys[1]]).numpy()) == shape1, f"Wrong shape. We expected {shape1}"
+    assert tuple(tf.shape(attention_weights[keys[1]]).numpy()) == shape1, (
+        f"Wrong shape. We expected {shape1}"
+    )
     assert np.allclose(
         attention_weights[keys[0]][0, 0, 1], [0.52145624, 0.47854376, 0.0]
     ), f"Wrong values in attention_weights[{keys[0]}]"
 
-    x, attention_weights = decoderk(x_array, encoderq_output, True, look_ahead_mask, None)
-    assert np.allclose(
-        x[1, 1], [-0.30814743, -0.6213016, -0.77767026, 1.7071193]
-    ), "Wrong values in x when training=True"
+    x, attention_weights = decoderk(
+        x_array, encoderq_output, True, look_ahead_mask, None
+    )
+    assert np.allclose(x[1, 1], [-0.30814743, -0.6213016, -0.77767026, 1.7071193]), (
+        "Wrong values in x when training=True"
+    )
 
     x, attention_weights = decoderk(
         x_array,
@@ -365,15 +398,14 @@ def test_Decoder():
         look_ahead_mask,
         utils.create_padding_mask(x_array),
     )
-    assert np.allclose(
-        x[1, 1], [-0.0250004, 0.50791883, -1.5877104, 1.1047921]
-    ), "Wrong values in x when training=True and use padding mask"
+    assert np.allclose(x[1, 1], [-0.0250004, 0.50791883, -1.5877104, 1.1047921]), (
+        "Wrong values in x when training=True and use padding mask"
+    )
 
     print("\033[92mAll tests passed")
 
 
 def test_Transformer():
-
     tf.random.set_seed(10)
 
     num_layers = 6
@@ -413,13 +445,17 @@ def test_Transformer():
         dec_padding_mask=dec_padding_mask,
     )
 
-    assert tf.is_tensor(translation), "Wrong type for translation. Output must be a tensor"
+    assert tf.is_tensor(translation), (
+        "Wrong type for translation. Output must be a tensor"
+    )
     shape1 = (
         sentence_lang_a.shape[0],
         max_positional_encoding_input,
         target_vocab_size,
     )
-    assert tuple(tf.shape(translation).numpy()) == shape1, f"Wrong shape. We expected {shape1}"
+    assert tuple(tf.shape(translation).numpy()) == shape1, (
+        f"Wrong shape. We expected {shape1}"
+    )
 
     assert np.allclose(
         translation[0, 0, 0:8],
@@ -437,10 +473,12 @@ def test_Transformer():
 
     keys = list(weights.keys())
     assert isinstance(weights, dict), "Wrong type for weights. It must be a dict"
-    assert (
-        len(keys) == 2 * num_layers
-    ), f"Wrong length for attention weights. It must be 2 x num_layers = {2*num_layers}"
-    assert tf.is_tensor(weights[keys[0]]), f"Wrong type for att_weights[{keys[0]}]. Output must be a tensor"
+    assert len(keys) == 2 * num_layers, (
+        f"Wrong length for attention weights. It must be 2 x num_layers = {2 * num_layers}"
+    )
+    assert tf.is_tensor(weights[keys[0]]), (
+        f"Wrong type for att_weights[{keys[0]}]. Output must be a tensor"
+    )
 
     shape1 = (
         sentence_lang_a.shape[0],
@@ -448,7 +486,9 @@ def test_Transformer():
         sentence_lang_a.shape[1],
         sentence_lang_a.shape[1],
     )
-    assert tuple(tf.shape(weights[keys[1]]).numpy()) == shape1, f"Wrong shape. We expected {shape1}"
+    assert tuple(tf.shape(weights[keys[1]]).numpy()) == shape1, (
+        f"Wrong shape. We expected {shape1}"
+    )
     assert np.allclose(
         weights[keys[0]][0, 0, 1], [0.4805548, 0.51944524, 0.0, 0.0, 0.0]
     ), f"Wrong values in weights[{keys[0]}]"

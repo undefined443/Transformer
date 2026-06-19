@@ -1,6 +1,8 @@
 import tensorflow as tf
-from attention import Encoder, Decoder
 from tensorflow.keras.layers import Dense
+
+from decoder import Decoder
+from encoder import Encoder
 
 
 class Transformer(tf.keras.Model):
@@ -52,7 +54,9 @@ class Transformer(tf.keras.Model):
         look_ahead_mask,
         dec_padding_mask,
     ):
-        enc_output = self.encoder(input_sentence, training=training, mask=enc_padding_mask)
+        enc_output = self.encoder(
+            input_sentence, training=training, mask=enc_padding_mask
+        )
         dec_output, attention_weights = self.decoder(
             output_sentence,
             enc_output,

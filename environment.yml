@@ -1,8 +1,0 @@
-name: transformer
-channels:
-  - conda-forge
-dependencies:
-  - python=3.7
-  - tensorflow=2.4
-  - numpy=1.19
-  - pytest=7.4
