@@ -1,43 +1,43 @@
 # Transformer
 
-Transformer 架构的 TensorFlow 实现，改编自 Coursera 课程作业 [Transformers Architecture with TensorFlow](https://www.coursera.org/learn/nlp-sequence-models/programming/roP5y/transformers-architecture-with-tensorflow)。
+A TensorFlow implementation of the Transformer architecture, adapted from the Coursera assignment [Transformers Architecture with TensorFlow](https://www.coursera.org/learn/nlp-sequence-models/programming/roP5y/transformers-architecture-with-tensorflow).
 
-## 项目结构
+## Project Structure
 
-- `src/encoder.py` - Encoder 和 EncoderLayer 实现
-- `src/decoder.py` - Decoder 和 DecoderLayer 实现
-- `src/transformer.py` - Transformer 模型主体
-- `src/utils.py` - 辅助函数（位置编码、attention 等）
+- `src/encoder.py` - Encoder and EncoderLayer implementations
+- `src/decoder.py` - Decoder and DecoderLayer implementations
+- `src/transformer.py` - Main Transformer model
+- `src/utils.py` - Utility functions (positional encoding, attention, etc.)
 
-## 环境要求
+## Requirements
 
 - Python >= 3.13
 - TensorFlow >= 2.21.0
 - NumPy >= 2.4.6
 
-## 安装依赖
+## Installation
 
-使用 [uv](https://github.com/astral-sh/uv) 管理依赖：
+Use [uv](https://github.com/astral-sh/uv) to manage dependencies:
 
 ```sh
 uv sync
 ```
 
-## 测试
+## Testing
 
-运行所有测试：
+Run all tests:
 
 ```sh
 uv run -m pytest tests/
 ```
 
-运行特定测试：
+Run a specific test:
 
 ```sh
 uv run -m pytest tests/test_all.py::test_get_angles -v
 ```
 
-## 注意事项
+## Notes
 
-- 由于不同的 GPU 硬件和 TensorFlow 版本，计算结果可能存在数值精度差异，导致测试不通过。
-- 建议使用 `uv sync` 创建一致的开发环境，以获得稳定的测试结果。
+- Numerical precision may vary across different GPU hardware and TensorFlow versions, which could cause tests to fail.
+- It's recommended to use `uv sync` to create a consistent development environment for stable test results.
