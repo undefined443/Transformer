@@ -19,7 +19,6 @@ class DecoderLayer(tf.keras.layers.Layer):
         layernorm_eps=1e-6,
     ):
         super().__init__()
-
         self.mha1 = MultiHeadAttention(
             num_heads=num_heads, key_dim=embedding_dim, dropout=dropout_rate
         )
@@ -71,7 +70,7 @@ class Decoder(tf.keras.layers.Layer):
         dropout_rate=0.1,
         layernorm_eps=1e-6,
     ):
-        super(Decoder, self).__init__()
+        super().__init__()
 
         self.embedding_dim = embedding_dim
         self.num_layers = num_layers

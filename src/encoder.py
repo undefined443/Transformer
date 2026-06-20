@@ -19,7 +19,6 @@ class EncoderLayer(tf.keras.layers.Layer):
         layernorm_eps=1e-6,
     ):
         super().__init__()
-
         self.mha = MultiHeadAttention(
             num_heads=num_heads, key_dim=embedding_dim, dropout=dropout_rate
         )
@@ -51,7 +50,8 @@ class Encoder(tf.keras.layers.Layer):
         dropout_rate=0.1,
         layernorm_eps=1e-6,
     ):
-        super(Encoder, self).__init__()
+        super().__init__()
+        self.supports_masking = True
 
         self.embedding_dim = embedding_dim
         self.num_layers = num_layers

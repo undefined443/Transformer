@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import keras
 
 import decoder
 import encoder
@@ -129,8 +130,8 @@ def test_scaled_dot_product_attention():
 
 def test_EncoderLayer():
     q = np.array([[[1, 0, 1, 1], [0, 1, 1, 1], [1, 0, 0, 1]]]).astype(np.float32)
+    keras.utils.set_random_seed(10)
     encoder_layer1 = encoder.EncoderLayer(4, 2, 8)
-    tf.random.set_seed(10)
     encoded = encoder_layer1(q, training=True, mask=np.array([[1, 0, 1]]))
 
     assert tf.is_tensor(encoded), "Wrong type. Output must be a tensor"
@@ -143,26 +144,26 @@ def test_EncoderLayer():
     assert np.allclose(
         encoded.numpy(),
         [
-            [0.23017104, -0.98100424, -0.78707516, 1.5379084],
-            [-1.2280797, 0.76477575, -0.7169283, 1.1802323],
-            [0.14880152, -0.48318022, -1.1908402, 1.5252188],
+            [1.71576512, -0.74984801, -0.59995812, -0.36595905],
+            [0.32841188, 0.92912263, 0.42910266, -1.68663716],
+            [1.66207135, -0.32136738, -0.32720715, -1.01349688],
         ],
     ), "Wrong values when training=True"
 
-    encoded = encoder_layer1(q, False, np.array([[1, 1, 0]]))
+    encoded = encoder_layer1(q, training=False, mask=np.array([[1, 1, 0]]))
     assert np.allclose(
         encoded.numpy(),
         [
-            [0.5167701, -0.92981905, -0.9731106, 1.3861597],
-            [-1.120878, 1.0826552, -0.8671041, 0.905327],
-            [0.28154755, -0.3661362, -1.3330412, 1.4176297],
+            [1.64606047, -0.51703101, -0.12530622, -1.00372314],
+            [1.12798142, 0.39329147, 0.08074424, -1.60201716],
+            [1.70261490, -0.42969552, -0.40591767, -0.86700189],
         ],
     ), "Wrong values when training=False"
     print("\033[92mAll tests passed")
 
 
 def test_Encoder():
-    tf.random.set_seed(10)
+    keras.utils.set_random_seed(10)
 
     embedding_dim = 4
 
@@ -189,52 +190,52 @@ def test_Encoder():
         encoderq_output.numpy(),
         [
             [
-                [-0.6906098, 1.0988709, -1.260586, 0.85232526],
-                [0.7319228, -0.3826024, -1.4507656, 1.1014453],
-                [1.0995713, -1.1686686, -0.80888665, 0.8779839],
+                [0.64132398, 1.18332124, -1.42407382, -0.40057123],
+                [0.43446064, -0.56744283, -1.25267708, 1.38565934],
+                [0.56714535, -1.27937925, -0.58937079, 1.30160475],
             ],
             [
-                [-0.4612937, 1.0697356, -1.4127715, 0.8043293],
-                [0.27027237, 0.28793618, -1.6370889, 1.0788803],
-                [1.2370994, -1.0687275, -0.8945037, 0.7261319],
+                [-0.11126658, 1.52792621, -1.27823997, -0.13841979],
+                [0.26675871, -0.71727818, -1.06176507, 1.51228452],
+                [1.44744325, -1.26434302, -0.47206059, 0.28896037],
             ],
         ],
     ), "Wrong values case 1"
 
     encoderq_output = encoderq(
-        x, True, np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]])
+        x, training=True, mask=np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]])
     )
     assert np.allclose(
         encoderq_output.numpy(),
         [
             [
-                [-0.36764443, 0.98527074, -1.4714274, 0.85380095],
-                [-0.50018215, 0.66005886, -1.3647256, 1.204849],
-                [0.99951494, -1.0142792, -0.9856176, 1.0003818],
+                [0.45556697, 1.16695023, -1.55771518, -0.06480181],
+                [0.99881208, -0.59526044, -1.33460665, 0.93105501],
+                [0.39011490, -1.13546515, -0.69520867, 1.44055903],
             ],
             [
-                [0.01838917, 1.038109, -1.6154225, 0.55892444],
-                [0.3872563, -0.40960154, -1.3456631, 1.3680083],
-                [0.534565, -0.70262754, -1.18215, 1.3502126],
+                [0.11205333, 1.04332399, -1.63397026, 0.47859314],
+                [0.96517229, -0.81126696, -1.17204273, 1.01813734],
+                [0.73446023, -1.15113628, -0.80374932, 1.22042549],
             ],
         ],
     ), "Wrong values case 2"
 
     encoderq_output = encoderq(
-        x, False, np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]])
+        x, training=False, mask=np.array([[[[1.0, 1.0, 1.0]]], [[[1.0, 1.0, 0.0]]]])
     )
     assert np.allclose(
         encoderq_output.numpy(),
         [
             [
-                [-0.5642399, 1.0386591, -1.3530676, 0.87864864],
-                [0.5261332, 0.21861789, -1.6758442, 0.93109316],
-                [1.2870724, -1.1545564, -0.7739521, 0.6414361],
+                [0.10186142, 1.26234436, -1.53813243, 0.17392626],
+                [0.94324565, -0.55363244, -1.36268473, 0.97307140],
+                [0.50403488, -1.10701632, -0.77986681, 1.38284838],
             ],
             [
-                [-0.01885331, 0.8866553, -1.624897, 0.75709504],
-                [0.4165045, 0.27912217, -1.6719477, 0.97632086],
-                [0.71298015, -0.7565592, -1.1861688, 1.2297478],
+                [0.28565845, 0.97811633, -1.67186785, 0.40809309],
+                [0.71860015, -0.81072897, -1.14180911, 1.23393798],
+                [0.73158288, -1.15945244, -0.79326874, 1.22113848],
             ],
         ],
     ), "Wrong values case 3"
@@ -244,7 +245,7 @@ def test_Encoder():
 
 def test_DecoderLayer():
     num_heads = 8
-    tf.random.set_seed(10)
+    keras.utils.set_random_seed(10)
 
     decoderLayerq = decoder.DecoderLayer(
         embedding_dim=4,
@@ -292,22 +293,22 @@ def test_DecoderLayer():
         f"Wrong shape. We expected {q.shape}"
     )
 
-    assert np.allclose(attn_w_b1[0, 0, 1], [0.5271505, 0.47284946, 0.0], atol=1e-2), (
+    assert np.allclose(attn_w_b1[0, 0, 1], [0.49882561, 0.50117433, 0.0], atol=1e-2), (
         "Wrong values in attn_w_b1. Check the call to self.mha1"
     )
-    assert np.allclose(attn_w_b2[0, 0, 1], [0.32048798, 0.390301, 0.28921106]), (
+    assert np.allclose(attn_w_b2[0, 0, 1], [0.39384076, 0.37554538, 0.23061390]), (
         "Wrong values in attn_w_b2. Check the call to self.mha2"
     )
-    assert np.allclose(out[0, 0], [-0.22109576, -1.5455486, 0.852692, 0.9139523]), (
+    assert np.allclose(out[0, 0], [1.48213482, -1.06372225, -0.74968433, 0.33127174]), (
         "Wrong values in out"
     )
 
     # Now let's try a example with padding mask
     padding_mask = np.array([[[1, 1, 0]]])
     out, attn_w_b1, attn_w_b2 = decoderLayerq(
-        q, encoderq_output, True, look_ahead_mask, padding_mask
+        q, encoderq_output, training=True, look_ahead_mask=look_ahead_mask, padding_mask=padding_mask
     )
-    assert np.allclose(out[0, 0], [0.14950314, -1.6444231, 1.0268553, 0.4680646]), (
+    assert np.allclose(out[0, 0], [1.46518159, -0.91289985, -0.93467861, 0.38239682]), (
         "Wrong values in out when we mask the last word. Are you passing the padding_mask to the inner functions?"
     )
 
@@ -315,7 +316,7 @@ def test_DecoderLayer():
 
 
 def test_Decoder():
-    tf.random.set_seed(10)
+    keras.utils.set_random_seed(10)
 
     num_layers = 7
     embedding_dim = 4
@@ -362,7 +363,7 @@ def test_Decoder():
     assert np.allclose(tf.shape(x), tf.shape(encoderq_output)), (
         f"Wrong shape. We expected {tf.shape(encoderq_output)}"
     )
-    assert np.allclose(x[1, 1], [-0.2715261, -0.5606001, -0.861783, 1.69390933]), (
+    assert np.allclose(x[1, 1], [1.34593654, 0.27714872, -1.44179332, -0.18129183]), (
         "Wrong values in x"
     )
 
@@ -381,24 +382,24 @@ def test_Decoder():
         f"Wrong shape. We expected {shape1}"
     )
     assert np.allclose(
-        attention_weights[keys[0]][0, 0, 1], [0.52145624, 0.47854376, 0.0]
+        attention_weights[keys[0]][0, 0, 1], [0.5049869, 0.4950131, 0.0]
     ), f"Wrong values in attention_weights[{keys[0]}]"
 
     x, attention_weights = decoderk(
-        x_array, encoderq_output, True, look_ahead_mask, None
+        x_array, encoderq_output, training=True, look_ahead_mask=look_ahead_mask, padding_mask=None
     )
-    assert np.allclose(x[1, 1], [-0.30814743, -0.6213016, -0.77767026, 1.7071193]), (
+    assert np.allclose(x[1, 1], [0.69916469, -1.08003044, -0.87543976, 1.25630558]), (
         "Wrong values in x when training=True"
     )
 
     x, attention_weights = decoderk(
         x_array,
         encoderq_output,
-        True,
-        look_ahead_mask,
-        utils.create_padding_mask(x_array),
+        training=True,
+        look_ahead_mask=look_ahead_mask,
+        padding_mask=utils.create_padding_mask(x_array),
     )
-    assert np.allclose(x[1, 1], [-0.0250004, 0.50791883, -1.5877104, 1.1047921]), (
+    assert np.allclose(x[1, 1], [-0.21460545, -0.95670772, -0.49893081, 1.67024422]), (
         "Wrong values in x when training=True and use padding mask"
     )
 
@@ -406,7 +407,7 @@ def test_Decoder():
 
 
 def test_Transformer():
-    tf.random.set_seed(10)
+    keras.utils.set_random_seed(10)
 
     num_layers = 6
     embedding_dim = 4
@@ -460,14 +461,14 @@ def test_Transformer():
     assert np.allclose(
         translation[0, 0, 0:8],
         [
-            0.017416516,
-            0.030932948,
-            0.024302809,
-            0.01997807,
-            0.014861834,
-            0.034384135,
-            0.054789476,
-            0.032087505,
+            0.02846772,
+            0.03779168,
+            0.02509714,
+            0.02112385,
+            0.03053033,
+            0.03151495,
+            0.01490482,
+            0.03214807,
         ],
     ), "Wrong values in translation"
 
@@ -490,29 +491,29 @@ def test_Transformer():
         f"Wrong shape. We expected {shape1}"
     )
     assert np.allclose(
-        weights[keys[0]][0, 0, 1], [0.4805548, 0.51944524, 0.0, 0.0, 0.0]
+        weights[keys[0]][0, 0, 1], [0.4912196, 0.5087804, 0.0, 0.0, 0.0]
     ), f"Wrong values in weights[{keys[0]}]"
 
     translation, weights = trans(
         sentence_lang_a,
         sentence_lang_b,
-        False,  # Training
-        enc_padding_mask,
-        look_ahead_mask,
-        dec_padding_mask,
+        training=False,
+        enc_padding_mask=enc_padding_mask,
+        look_ahead_mask=look_ahead_mask,
+        dec_padding_mask=dec_padding_mask,
     )
 
     assert np.allclose(
         translation[0, 0, 0:8],
         [
-            0.01751175,
-            0.029051155,
-            0.024785805,
-            0.020421047,
-            0.0149451075,
-            0.033235606,
-            0.053800166,
-            0.028556924,
+            0.02849045,
+            0.03841006,
+            0.02527412,
+            0.02153934,
+            0.03023914,
+            0.03138555,
+            0.01497277,
+            0.03288213,
         ],
     ), "Wrong values in outd"
 
