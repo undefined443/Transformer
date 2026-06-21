@@ -9,7 +9,9 @@ def get_angles(pos, k, d):
 
 
 def positional_encoding(positions, d):
-    angle_rads = get_angles(np.arange(positions)[..., np.newaxis], np.arange(d)[np.newaxis, ...], d)
+    angle_rads = get_angles(
+        np.arange(positions)[..., np.newaxis], np.arange(d)[np.newaxis, ...], d
+    )
     angle_rads[:, 0::2] = np.sin(angle_rads[:, 0::2])
     angle_rads[:, 1::2] = np.cos(angle_rads[:, 1::2])
     pos_encoding = angle_rads[np.newaxis, ...]

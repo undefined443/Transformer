@@ -1,6 +1,6 @@
+import keras
 import numpy as np
 import tensorflow as tf
-import keras
 
 import decoder
 import encoder
@@ -306,7 +306,11 @@ def test_DecoderLayer():
     # Now let's try a example with padding mask
     padding_mask = np.array([[[1, 1, 0]]])
     out, attn_w_b1, attn_w_b2 = decoderLayerq(
-        q, encoderq_output, training=True, look_ahead_mask=look_ahead_mask, padding_mask=padding_mask
+        q,
+        encoderq_output,
+        training=True,
+        look_ahead_mask=look_ahead_mask,
+        padding_mask=padding_mask,
     )
     assert np.allclose(out[0, 0], [1.46518159, -0.91289985, -0.93467861, 0.38239682]), (
         "Wrong values in out when we mask the last word. Are you passing the padding_mask to the inner functions?"
@@ -386,7 +390,11 @@ def test_Decoder():
     ), f"Wrong values in attention_weights[{keys[0]}]"
 
     x, attention_weights = decoderk(
-        x_array, encoderq_output, training=True, look_ahead_mask=look_ahead_mask, padding_mask=None
+        x_array,
+        encoderq_output,
+        training=True,
+        look_ahead_mask=look_ahead_mask,
+        padding_mask=None,
     )
     assert np.allclose(x[1, 1], [0.69916469, -1.08003044, -0.87543976, 1.25630558]), (
         "Wrong values in x when training=True"
